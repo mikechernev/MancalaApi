@@ -5,8 +5,7 @@ import com.mikechernev.mancala.api.dao.GameDaoImpl;
 import com.mikechernev.mancala.api.dao.PlayerDao;
 import com.mikechernev.mancala.api.dao.PlayerDaoImpl;
 import com.mikechernev.mancala.api.domain.Game;
-import com.mikechernev.mancala.api.domain.Move;
-import com.mikechernev.mancala.api.domain.Player;
+import com.mikechernev.mancala.api.managers.GameManager;
 import com.mikechernev.mancala.api.persistance.Mongo;
 
 import javax.ws.rs.*;
@@ -23,9 +22,10 @@ public class GameEndpoints {
     @Produces("application/json")
     public Game getGame(@PathParam("gameId") String gameId) {
         GameDao gameDao = new GameDaoImpl(Mongo.getDatastore());
-        Game game = gameDao.get(gameId);
 
-        return game;
+        GameManager manager = new GameManager(gameDao);
+
+        return manager.getGame(gameId);
     }
 
     @POST
@@ -34,9 +34,9 @@ public class GameEndpoints {
     public Game createGame() {
         Game game = new Game();
         GameDao gameDao = new GameDaoImpl(Mongo.getDatastore());
-        gameDao.create(game);
+        GameManager manager = new GameManager(gameDao, game);
 
-        return game;
+        return manager.createGame();
     }
 
     @PUT
@@ -44,63 +44,28 @@ public class GameEndpoints {
     @Produces("application/json")
     public Game addPlayer(@PathParam("gameId") String gameId, @PathParam("playerId") String playerId) {
         GameDao gameDao = new GameDaoImpl(Mongo.getDatastore());
-        Game game = gameDao.get(gameId);
-
-        if (game == null) {
-            return null;
-        }
-
         PlayerDao playerDao = new PlayerDaoImpl(Mongo.getDatastore());
-        Player player = playerDao.get(playerId);
 
-        if (player == null) {
-            return game;
-        }
+        GameManager manager = new GameManager(gameDao, playerDao);
 
-        game.addPlayer(player);
-        game.setCurrentPlayer(player);
-
-        gameDao.update(game);
-
-        return game;
+        return manager.addPlayer(gameId, playerId);
     }
 
     @POST
-    @Path("/{gameId}/move/{pitId}")
+    @Path("/{gameId}/move/{pit}")
     @Produces("application/json")
     @Consumes("application/x-www-form-urlencoded")
     public Game makeMove(
             @PathParam("gameId") String gameId,
-            @PathParam("pitId") Integer pitId,
+            @PathParam("pit") Integer pit,
             @FormParam("playerId") String playerId
     ) {
         GameDao gameDao = new GameDaoImpl(Mongo.getDatastore());
-        Game game = gameDao.get(gameId);
-
-        if (game == null) {
-            return null;
-        }
-
-        if (playerId == null) {
-            return game;
-        }
-
-
         PlayerDao playerDao = new PlayerDaoImpl(Mongo.getDatastore());
-        Player player = playerDao.get(playerId);
 
-        if (player == null) {
-            return game;
-        }
+        GameManager manager = new GameManager(gameDao, playerDao);
 
-        Move move = new Move(player, pitId);
-
-        game.makeMove(move);
-
-        game.setCurrentPlayer(player);
-        gameDao.update(game);
-
-        return game;
+        return manager.makeMove(gameId, playerId, pit);
     }
 }
 

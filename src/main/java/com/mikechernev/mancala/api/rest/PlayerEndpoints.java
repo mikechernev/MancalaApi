@@ -3,6 +3,7 @@ package com.mikechernev.mancala.api.rest;
 import com.mikechernev.mancala.api.dao.PlayerDao;
 import com.mikechernev.mancala.api.dao.PlayerDaoImpl;
 import com.mikechernev.mancala.api.domain.Player;
+import com.mikechernev.mancala.api.managers.PlayerManager;
 import com.mikechernev.mancala.api.persistance.Mongo;
 
 import javax.ws.rs.*;
@@ -20,7 +21,9 @@ public class PlayerEndpoints {
     public Player getPlayer(@PathParam("playerId") String playerId) {
         PlayerDao playerDao = new PlayerDaoImpl(Mongo.getDatastore());
 
-        return playerDao.get(playerId);
+        PlayerManager manager = new PlayerManager(playerDao);
+
+        return manager.getPlayer(playerId);
     }
 
     @POST
@@ -30,9 +33,9 @@ public class PlayerEndpoints {
         Player player = new Player();
         PlayerDao playerDao = new PlayerDaoImpl(Mongo.getDatastore());
 
-        playerDao.create(player);
+        PlayerManager manager = new PlayerManager(playerDao, player);
 
-        return player;
+        return manager.createPlayer();
     }
 
     @PUT
@@ -42,19 +45,8 @@ public class PlayerEndpoints {
     public Player updatePlayer(@PathParam("playerId") String playerId, @FormParam("name") String name) {
         PlayerDao playerDao = new PlayerDaoImpl(Mongo.getDatastore());
 
-        Player player = playerDao.get(playerId);
-        if (player == null) {
-            return null;
-        }
-
-        if (name == null) {
-            return player;
-        }
-
-        player.setName(name);
-        playerDao.update(player);
-
-        return player;
+        PlayerManager manager = new PlayerManager(playerDao);
+        return manager.setPlayerName(playerId, name);
     }
 }
 
