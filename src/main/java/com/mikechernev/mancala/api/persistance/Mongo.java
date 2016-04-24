@@ -11,6 +11,7 @@ import org.mongodb.morphia.Morphia;
  */
 public class Mongo {
     private static Datastore datastore;
+    private static final String DATABASE_NAME = "Mancala";
 
     public static Datastore getDatastore() {
         if (datastore == null) {
@@ -24,7 +25,7 @@ public class Mongo {
         MongoClient client = new MongoClient();
         Morphia morphia = new Morphia();
         mapClasses(morphia);
-        datastore = morphia.createDatastore(client, "Mancala");
+        datastore = morphia.createDatastore(client, DATABASE_NAME);
     }
 
     private static void mapClasses(Morphia morphia) {

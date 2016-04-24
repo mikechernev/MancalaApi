@@ -15,27 +15,25 @@ public class Player {
     private String id;
     private String name;
 
-    // This is required by Morphia
-    public Player() {
-    }
-
-    public Player(String name) {
-        setName(name);
-    }
-
     public void setName(String name) {
         this.name = name;
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public String getId() {
-        if (id == null) {
-            id = _id.toString();
+        if (this.id == null) {
+            this.id = this._id.toString();
         }
 
-        return id;
+        return this.id;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Player && this._id.equals(((Player) obj)._id);
+    }
+
 }

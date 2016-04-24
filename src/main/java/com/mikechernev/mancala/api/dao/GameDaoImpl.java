@@ -16,20 +16,21 @@ public class GameDaoImpl implements GameDao {
     }
 
     public boolean create(Game game) {
-        return save(game);
+        return this.save(game);
     }
 
     public Game get(String id) {
         ObjectId objectId = new ObjectId(id);
-        return ds.get(Game.class, objectId);
+        return this.ds.get(Game.class, objectId);
     }
 
     public final boolean update(Game game) {
-        return save(game);
+        return this.save(game);
     }
 
     private final boolean save(Game game) {
-        ds.save(game);
+        this.ds.save(game);
+
         return true;
     }
 }

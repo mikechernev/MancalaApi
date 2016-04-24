@@ -47,6 +47,10 @@ public class PlayerEndpoints {
             return null;
         }
 
+        if (name == null) {
+            return player;
+        }
+
         player.setName(name);
         playerDao.update(player);
 

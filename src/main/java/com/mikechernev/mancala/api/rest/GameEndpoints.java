@@ -1,7 +1,11 @@
 package com.mikechernev.mancala.api.rest;
 
-import com.mikechernev.mancala.api.dao.*;
+import com.mikechernev.mancala.api.dao.GameDao;
+import com.mikechernev.mancala.api.dao.GameDaoImpl;
+import com.mikechernev.mancala.api.dao.PlayerDao;
+import com.mikechernev.mancala.api.dao.PlayerDaoImpl;
 import com.mikechernev.mancala.api.domain.Game;
+import com.mikechernev.mancala.api.domain.Move;
 import com.mikechernev.mancala.api.domain.Player;
 import com.mikechernev.mancala.api.persistance.Mongo;
 
@@ -54,7 +58,46 @@ public class GameEndpoints {
         }
 
         game.addPlayer(player);
+        game.setCurrentPlayer(player);
 
+        gameDao.update(game);
+
+        return game;
+    }
+
+    @POST
+    @Path("/{gameId}/move/{pitId}")
+    @Produces("application/json")
+    @Consumes("application/x-www-form-urlencoded")
+    public Game makeMove(
+            @PathParam("gameId") String gameId,
+            @PathParam("pitId") Integer pitId,
+            @FormParam("playerId") String playerId
+    ) {
+        GameDao gameDao = new GameDaoImpl(Mongo.getDatastore());
+        Game game = gameDao.get(gameId);
+
+        if (game == null) {
+            return null;
+        }
+
+        if (playerId == null) {
+            return game;
+        }
+
+
+        PlayerDao playerDao = new PlayerDaoImpl(Mongo.getDatastore());
+        Player player = playerDao.get(playerId);
+
+        if (player == null) {
+            return game;
+        }
+
+        Move move = new Move(player, pitId);
+
+        game.makeMove(move);
+
+        game.setCurrentPlayer(player);
         gameDao.update(game);
 
         return game;

@@ -16,20 +16,20 @@ public class PlayerDaoImpl implements PlayerDao {
     }
 
     public boolean create(Player player) {
-        return save(player);
+        return this.save(player);
     }
 
     public Player get(String id) {
         ObjectId objectId = new ObjectId(id);
-        return ds.get(Player.class, objectId);
+        return this.ds.get(Player.class, objectId);
     }
 
     public boolean update(Player player) {
-        return save(player);
+        return this.save(player);
     }
 
     private final boolean save(Player player) {
-        ds.save(player);
+        this.ds.save(player);
         return true;
     }
 
