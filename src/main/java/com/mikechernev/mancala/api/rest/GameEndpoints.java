@@ -4,10 +4,12 @@ import com.mikechernev.mancala.api.dao.GameDao;
 import com.mikechernev.mancala.api.dao.GameDaoImpl;
 import com.mikechernev.mancala.api.dao.PlayerDao;
 import com.mikechernev.mancala.api.dao.PlayerDaoImpl;
+import com.mikechernev.mancala.api.domain.Board;
 import com.mikechernev.mancala.api.domain.Game;
 import com.mikechernev.mancala.api.managers.GameManager;
 import com.mikechernev.mancala.api.persistance.Mongo;
 
+import javax.swing.*;
 import javax.ws.rs.*;
 
 /**
@@ -32,7 +34,8 @@ public class GameEndpoints {
     @Path("/")
     @Produces("application/json")
     public Game createGame() {
-        Game game = new Game();
+        Board board = new Board();
+        Game game = new Game(board);
         GameDao gameDao = new GameDaoImpl(Mongo.getDatastore());
         GameManager manager = new GameManager(gameDao, game);
 

@@ -17,6 +17,7 @@ public class Game {
 
     @Reference
     private Player host;
+
     @Reference
     private Player guest;
 
@@ -36,21 +37,16 @@ public class Game {
     @Transient
     private Player currentPlayer;
 
-    // This is required by Morphia
+    // Needed for Morphia
     public Game() {
-        board = new Board();
     }
 
-    public Game(Player host) {
-        this.host = host;
+    public Game(Board board) {
+        this.board = board;
     }
 
     public boolean addPlayer(Player player) {
-        if (addHost(player)) {
-            return true;
-        }
-
-        if (player.equals(host)) {
+        if (addHost(player) || player.equals(host)) {
             return true;
         }
 
@@ -65,12 +61,20 @@ public class Game {
         return this.id;
     }
 
-    public Player getHostName() {
-        return this.host;
+    public String getHostName() {
+        if (this.host == null) {
+            return null;
+        }
+
+        return this.host.getName();
     }
 
-    public Player getGuestName() {
-        return this.guest;
+    public String getGuestName() {
+        if (this.guest == null) {
+            return null;
+        }
+
+        return this.guest.getName();
     }
 
     public Board getBoard() {
@@ -90,6 +94,7 @@ public class Game {
     }
 
     public String getCurrentPlayer() {
+        // TODO:
         if (this.currentPlayer == null) {
             return PlayerSettings.SPECTATOR_IDENTIFIER;
         }
@@ -115,7 +120,6 @@ public class Game {
         }
 
         this.board.applyMove(move);
-
         this.moves.add(move);
 
         if (this.isGameOver()) {

@@ -14,6 +14,10 @@ public class Board {
         this.resetBoard();
     }
 
+    public Board(int[] state) {
+        this.currentState = state;
+    }
+
     public int[] getState() {
         return this.currentState;
     }
@@ -41,7 +45,7 @@ public class Board {
 
     @JsonIgnore
     public boolean isGuestOver() {
-        for (int i = BoardSettings.HOST_KALAH; i < BoardSettings.GUEST_KALAH; i++) {
+        for (int i = BoardSettings.HOST_KALAH + 1; i < BoardSettings.GUEST_KALAH; i++) {
             if (this.currentState[i] > 0) {
                 return false;
             }
@@ -59,9 +63,9 @@ public class Board {
     }
 
     public void applyMove(Move move) {
-        int homeKalah = this.getHomeKalahFromPit(move.getPit());
-
-        int endPit = this.distributeStones(move.getPit(), homeKalah);
+        int pit = move.getPit();
+        int homeKalah = this.getHomeKalahFromPit(pit);
+        int endPit = this.distributeStones(pit, homeKalah);
 
         if (this.isCaptureStone(endPit, homeKalah)) {
             this.captureStones(endPit, homeKalah);
@@ -74,13 +78,10 @@ public class Board {
         int pit = move.getPit();
 
         return this.isValidPit(pit) && this.currentState[pit] > 0;
-
     }
 
     public boolean isEndPitHomeKalah(Move move) {
-        int homeKalah = this.getHomeKalahFromPit(move.getPit());
-
-        return homeKalah == move.getEndPit();
+        return this.getHomeKalahFromPit(move.getPit()) == move.getEndPit();
     }
 
     public void collectStones() {
@@ -90,51 +91,48 @@ public class Board {
                 continue;
             }
 
-            if (i < BoardSettings.HOST_KALAH) {
-                this.currentState[BoardSettings.HOST_KALAH] += this.currentState[i];
-            } else {
-                this.currentState[BoardSettings.GUEST_KALAH] += this.currentState[i];
-            }
-
+            int index = i < BoardSettings.HOST_KALAH ? BoardSettings.HOST_KALAH : BoardSettings.GUEST_KALAH;
+            this.currentState[index] += this.currentState[i];
             this.currentState[i] = 0;
         }
     }
 
     // Package public
     void resetBoard() {
-        this.currentState = BoardSettings.INITIAL_STATE;
+        this.currentState = BoardSettings.INITIAL_STATE.clone();
     }
 
     private int distributeStones(int startingPit, int homeKalah) {
         int stones = this.currentState[startingPit];
-        int opponentsKalah = this.getOpponentKalahFromHomeKalah(homeKalah);
+        int opponentsKalah = this.getOpponentKalah(homeKalah);
 
-        int pitIndex = startingPit;
-        this.currentState[pitIndex] = 0;
+        this.currentState[startingPit] = 0;
 
+        int jumps = 0;
         for (int i = 1; i <= stones; i++) {
-            pitIndex = this.realIndex(startingPit + i);
+            int pitIndex = this.realIndex(startingPit + jumps + i);
 
             // Ignore opponent's kalah
             if (pitIndex == opponentsKalah) {
                 pitIndex = this.realIndex(pitIndex + 1);
+                jumps++;
             }
 
             this.currentState[pitIndex]++;
         }
 
-        return pitIndex;
+        return this.realIndex(startingPit + jumps + stones);
     }
 
     private int getHomeKalahFromPit(int pit) {
-        if (pit < BoardSettings.HOST_KALAH) {
+        if (pit <= BoardSettings.HOST_KALAH) {
             return BoardSettings.HOST_KALAH;
         }
 
         return BoardSettings.GUEST_KALAH;
     }
 
-    private int getOpponentKalahFromHomeKalah(int homeKalah) {
+    private int getOpponentKalah(int homeKalah) {
         return this.realIndex(homeKalah + BoardSettings.OFFSET);
     }
 
@@ -144,7 +142,6 @@ public class Board {
 
     private boolean isCaptureStone(int endPit, int homeKalah) {
         return this.currentState[endPit] == 1 && this.isOwnPit(endPit, homeKalah);
-
     }
 
     private boolean isOwnPit(int pit, int homeKalah) {
@@ -169,7 +166,7 @@ public class Board {
 
     private boolean isValidPit(int pit) {
         return pit >= 0 && pit < BoardSettings.PITS &&
-                pit != BoardSettings.HOST_KALAH && pit != BoardSettings.GUEST_KALAH;
+               pit != BoardSettings.HOST_KALAH && pit != BoardSettings.GUEST_KALAH;
     }
 
     private int getCapturedPit(int endPit) {
