@@ -22,7 +22,7 @@ public class Mongo {
     }
 
     private static void setDatastore() {
-        MongoClient client = new MongoClient();
+        MongoClient client = new MongoClient("mongodb");
         Morphia morphia = new Morphia();
         mapClasses(morphia);
         datastore = morphia.createDatastore(client, DATABASE_NAME);
